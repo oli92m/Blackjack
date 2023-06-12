@@ -1,0 +1,376 @@
+from fractions import Fraction
+
+valid_number_of_decks = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+valid_number_of_players = ['1', '2', '3', '4', '5', '6']
+cards_possible = ['A', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1']
+valid_answer2 = ['M', 'R', 'N', 'm', 'r', 'n']
+player_0 = []
+player_1 = []
+player = []
+dealer_0 = []
+dealer = []
+rest_0 = []
+rest = []
+merger = []
+count = 0
+count_of_As = 0
+
+
+# Number of decks:
+while True:
+    print('How many decks are you playing with?')
+    number_of_decks = input()
+    valid_number = True
+
+    if number_of_decks not in valid_number_of_decks:
+        print('The number of decks is not valid.')
+        valid_number = False
+
+    if valid_number:
+        break
+
+
+# Number of players:
+while True:
+    print('How many players are playing with you? (the dealer does not count)')
+    number_of_players_0 = input()
+    valid_number = True
+
+    if number_of_players_0 not in valid_number_of_players:
+        print('The number of players is not valid.')
+        valid_number = False
+
+    if valid_number and len(number_of_players_0) != 0:
+        break
+
+number_of_players = int(number_of_players_0)
+
+print('Enter the cards on the table:')
+
+# Main loop:
+while True:
+
+    def valid_input():
+
+        while True:
+            player_input = input('your cards: ')
+            player_input_up = player_input.upper()
+            player_0 = player_input_up.split()
+            valid_player_cards = True
+
+            if len(player_0) != 2:
+                print('You are supposed to have two cards.')
+                valid_player_cards = False
+
+            for card in player_0:
+                if card not in cards_possible:
+                    print('There is an error in your cards:', card)
+                    valid_player_cards = False
+
+            if valid_player_cards and len(player_0) != 0:
+                break
+
+        while True:
+            dealer_input = input('dealer card: ')
+            dealer_input_up = dealer_input.upper()
+            dealer_0 = dealer_input_up.split()
+            valid_dealer_cards = True
+
+            if len(dealer_0) != 1:
+                print('The dealer has one card.')
+                valid_dealer_cards = False
+
+            for card in dealer_0:
+                if card not in cards_possible:
+                    valid_dealer_cards = False
+                    print('There is an error in the card:', card)
+
+            if valid_dealer_cards and len(dealer_0) != 0:
+                break
+
+
+        while True:
+            rest_input = input('rest of the cards: ')
+            rest_input_up = rest_input.upper()
+            rest_0 = rest_input_up.split()
+            valid_rest_cards = True
+
+            if len(rest_0) != int(number_of_players)*2:
+                valid_rest_cards = False
+                print('Each player has 2 cards.')
+
+            for card in rest_0:
+                if card not in cards_possible:
+                    valid_rest_cards = False
+                    print('There is an error in the cards:', card)
+                    break
+
+
+            if valid_rest_cards and len(rest_0) != 0:
+                break
+
+        return player_0, dealer_0, rest_0
+
+
+    player_0, dealer_0, rest_0 = valid_input()
+
+
+    def invert(player_0):
+        player_1 = []
+
+        for card in player_0:
+            if card == 'A':
+                player.append(card)
+            else:
+                player_1.append(int(card))
+
+        player_1.sort(reverse=True)
+
+        for card in player_1:
+            player.append(str(card))
+
+        return player
+
+
+    player = invert(player_0)
+
+
+    # Process the cards of the turn and the number of decks left:
+    merger.extend([card for card in player])
+    merger.extend([card for card in dealer])
+    merger.extend([card for card in rest])
+    seen = [item for sublist in merger for item in sublist.split()]
+
+    decks_left = round((int(number_of_decks) * 52 - len(seen)) / 52)
+
+    if decks_left == 0:
+        decks_left = 1
+
+
+    # Strategy:
+    def player_strategy(player, dealer):
+        strategy = ''
+
+        match player:
+
+            case ['A', '10'] | ['A', '9'] | ['A', '8'] | ['10', '9'] | ['10', '8'] | ['10', '7'] | ['9', '8'] | \
+                 ['SOFT 18'] | ['SOFT 19'] | ['SOFT 20'] | ['SOFT 21'] | ['HARD21'] | ['HARD 20'] | ['HARD 19'] | \
+                 ['HARD 18'] | ['HARD 17']:
+                strategy = 'Stand'
+
+            case ['10', '6'] | ['9', '7'] | ['HARD 16']:
+                match dealer:
+                    case ['2'] | ['3'] | ['4'] | ['5'] | ['6']:
+                        strategy = 'Stand'
+                    case _:
+                        strategy = 'Hit'
+
+            case ['10', '5'] | ['9', '6'] | ['8', '7'] | ['HARD 15']:
+                match dealer:
+                    case ['2'] | ['3'] | ['4'] | ['5'] | ['6']:
+                        strategy = 'Stand'
+                    case _:
+                        strategy = 'Hit'
+
+            case ['10', '4'] | ['9', '5'] | ['8', '6'] | ['HARD 14']:
+                match dealer:
+                    case ['2'] | ['3'] | ['4'] | ['5'] | ['6']:
+                        strategy = 'Stand'
+                    case _:
+                        strategy = 'Hit'
+
+            case ['10', '3'] | ['9', '4'] | ['8', '5'] | ['7', '6'] | ['HARD 13']:
+                match dealer:
+                    case ['2'] | ['3'] | ['4'] | ['5'] | ['6']:
+                        strategy = 'Stand'
+                    case _:
+                        strategy = 'Hit'
+
+            case ['10', '2'] | ['9', '3'] | ['8', '4'] | ['7', '5'] | ['HARD 12']:
+                match dealer:
+                    case ['4'] | ['5'] | ['6']:
+                        strategy = 'Stand'
+                    case _:
+                        strategy = 'Hit'
+
+            case ['9', '2'] | ['8', '3'] | ['7', '4'] | ['6', '5'] | ['HARD 11']:
+                strategy = 'Double'
+
+            case ['8', '2'] | ['7', '3'] | ['6', '4'] | ['HARD 10']:
+                match dealer:
+                    case ['2'] | ['3'] | ['4'] | ['5'] | ['6'] | ['7'] | ['8'] | ['9']:
+                        strategy = 'Double'
+                    case _:
+                        strategy = 'Hit'
+
+            case ['7', '2'] | ['6', '3'] | ['5', '4'] | ['HARD 9']:
+                match dealer:
+                    case ['3'] | ['4'] | ['5'] | ['6']:
+                        strategy = 'Double'
+                    case _:
+                        strategy = 'Hit'
+
+            case ['6', '2'] | ['5', '3'] | ['HARD 8'] | ['5', '2'] | ['4', '3'] | ['HARD 7'] | ['4', '2'] | \
+                 ['Hard 6'] | ['3', '2']:
+                strategy = 'Hit'
+
+            case ['A', '7'] | ['SOFT 18']:
+                match dealer:
+                    case ['2'] | ['3'] | ['4'] | ['5'] | ['6']:
+                        strategy = 'Double'
+                    case ['7'] | ['8']:
+                        strategy = 'Stand'
+                    case _:
+                        strategy = 'Hit'
+
+            case ['A', '6'] | ['SOFT 17']:
+                match dealer:
+                    case ['2'] | ['7'] | ['8'] | ['9'] | ['10'] | ['A']:
+                        strategy = 'Hit'
+                    case _:
+                        strategy = 'Double'
+
+            case ['A', '5'] | ['A', '4'] | ['SOFT 16'] | ['SOFT 15']:
+                match dealer:
+                    case ['2'] | ['3'] | ['7'] | ['8'] | ['9'] | ['10'] | ['A']:
+                        strategy = 'Hit'
+                    case _:
+                        strategy = 'Double'
+
+            case ['A', '3'] | ['A', '2'] | ['SOFT 14'] | ['SOFT 13']:
+                match dealer:
+                    case ['2'] | ['3'] | ['4'] | ['7'] | ['8'] | ['9'] | ['10'] | ['A']:
+                        strategy = 'Hit'
+                    case _:
+                        strategy = 'Double'
+
+            case ['A', 'A'] | ['8', '8']:
+                strategy = 'Split. Hit'
+
+            case ['10', '10']:
+                strategy = 'Do not split. Stand'
+
+            case ['5', '5']:
+                match dealer:
+                    case ['2'] | ['3'] | ['4'] | ['5'] | ['6'] | ['7'] | ['8'] | ['9']:
+                        strategy = 'Double'
+                    case _:
+                        strategy = 'Hit'
+
+            case ['4', '4']:
+                strategy = 'Do not split. Hit'
+
+            case ['9', '9']:
+                match dealer:
+                    case ['2'] | ['3'] | ['4'] | ['5'] | ['6'] | ['8'] | ['9']:
+                        strategy = 'Split. Hit'
+                    case _:
+                        strategy = 'Do not split. Stand'
+
+            case ['7', '7']:
+                match dealer:
+                    case ['2'] | ['3'] | ['4'] | ['5'] | ['6'] | ['7']:
+                        strategy = 'Split. Hit'
+                    case _:
+                        strategy = 'Do not split. Hit'
+
+            case ['6', '6']:
+                match dealer:
+                    case ['2'] | ['3'] | ['4'] | ['5'] | ['6']:
+                        strategy = 'Split. Hit'
+                    case _:
+                        strategy = 'Split. Hit'
+
+            case ['3', '3'] | ['2', '2']:
+                match dealer:
+                    case ['2'] | ['3'] | ['8'] | ['9'] | ['10'] | ['A']:
+                        strategy = 'Split. Hit'
+                    case _:
+                        strategy = 'Do not split. Hit'
+
+        return strategy
+
+
+    strategy = player_strategy(player, dealer)
+    print(strategy)
+
+
+    # Card counting:
+    def card_counting(seen, count):
+
+        for card in seen:
+
+            if card == 'A' or card == 8:
+                count += 0
+
+            elif card == '2' or card == '3' or card == '7':
+                count += 1
+
+            elif card == '4' or card == '5' or card == '6':
+                count += 2
+
+            elif card == '9':
+                count += -1
+
+            elif card == '10':
+                count += -2
+
+        return count
+
+
+    count = card_counting(seen, count)
+    count_of_As = seen.count('A')
+    true_count = Fraction(count, decks_left)
+
+    print('Count:', count, ' True count:', true_count, ' ', 'Count of As:',
+          Fraction(count_of_As, int(number_of_decks) * 4), ' ', decks_left, 'decks remaining')
+
+    player = []
+
+
+    # End of the turn:
+    if strategy == 'Stand' or strategy == 'Do not split. Stand':
+        print('Update the last cards of the turn:')
+        more_cards = [input()]
+        merger.extend([card for card in more_cards])
+        seen = [item for sublist in merger for item in sublist.split()]
+        count = 0
+        card_counting(seen, count)
+        count = card_counting(seen, count)
+        true_count = Fraction(count, decks_left)
+        print('- End of the turn. The current true count is', true_count, '-')
+        print('You can now enter the new cards:')
+
+    else:
+        x = 0
+        while x == 0:
+            print('What would you like to update? M(y cards)/R(est of the cards)/N(othing)')
+            answer_2 = input()
+
+            if answer_2 == 'M' or answer_2 == 'm':
+                print('What is your new total? (Hard/Soft + Value)')
+                answer_3 = [input()]
+                player = answer_3.upper()
+                strategy = player_strategy(player, dealer)
+                print(strategy)
+                print('Do not forget to uptdate the new cards.')
+
+            if answer_2 == 'R' or answer_2 == 'r':
+                print('Enter the new cards:')
+                more_cards = [input()]
+                merger.extend([card for card in more_cards])
+                seen = [item for sublist in merger for item in sublist.split()]
+                print('The count will be updated.')
+
+            if answer_2 == 'N' or answer_2 == 'n':
+                count = 0
+                card_counting(seen, count)
+                count = card_counting(seen, count)
+                true_count = Fraction(count, decks_left)
+                print('- End of the turn. The current true count is', true_count, '-')
+                print('You can now enter the new cards:')
+                x = 1
+
+            if answer_2 not in valid_answer2:
+                print('There is an error in your answer. Please try again.')
+
