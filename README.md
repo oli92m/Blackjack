@@ -1,7 +1,7 @@
 # Blackjack
-Program about strategy and card counting in blackjack.
+Program about strategy and card counting in Blackjack.
 
-The program will basically give two types of information: 
+The program will give two types of information: 
 - the strategy for the round (pick a card, stay...)
 - the cards count (including the Aces for the most advanced players).
 
